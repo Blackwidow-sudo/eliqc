@@ -1,4 +1,4 @@
-PROGNAME = licalc
+PROGNAME = eliqc
 
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra
