@@ -1,2 +1,3 @@
 # licalc
-Liquid Calculator written for Linux CLI, written in C.
+Command Line tool to calculate e-liquid recipes.
+Written in C.
