@@ -1,0 +1,8 @@
+- There seems to be a bug which causes segfaults when running the program with -h flag (sometimes)
+- Include libcs50 in src
+- There are some potential bugs when calculating the amounts. It should be checked if the given ingredient amounts are computable.
+
+Suggested Features:
+    -b Calculate a Baseliquid (VPG and Nicotin)
+    -l Calcutate a full Liquid (PG/VG/Nicotin/Aroma)
+    -a Calculate how much liquid can be made with N ml aroma

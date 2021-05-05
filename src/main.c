@@ -16,14 +16,6 @@
 
 /* Written May 2021 by Merlin Cornehl */
 
-/**
- * TODO:
- * Implement more options:
- * * -b Calculate a Baseliquid (VPG and Nicotin)
- * * -l Calcutate a full Liquid (PG/VG/Nicotin/Aroma)
- * * -a Calculate how much liquid can be made with N ml aroma
- */
-
 #include <stdio.h>
 #include <cs50.h>
 #include <stdlib.h>
@@ -126,7 +118,5 @@ int main(int argc, char *const argv[])
     else
         writeToConsole(&newLiquid);
 
-    /* free(HELPTEXT); */
-    
     exit(EXIT_SUCCESS);
 }
