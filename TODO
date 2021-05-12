@@ -3,6 +3,7 @@
 - There are some potential bugs when calculating the amounts. It should be checked if the given ingredient amounts are computable.
 
 Suggested Features:
+    -c Print to console (default)
     -b Calculate a Baseliquid (VPG and Nicotin)
     -l Calcutate a full Liquid (PG/VG/Nicotin/Aroma)
     -a Calculate how much liquid can be made with N ml aroma

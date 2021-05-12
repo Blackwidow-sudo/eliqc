@@ -21,23 +21,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/resource.h>
 
 #include "functions.h"
 
-// Template String for -h option
-const string HELP_TEMPLATE = "Usage: %s [OPTION]... [FILENAME]...\nCreate a Recipe for a Liquid with the given Ingredients.\nExample: %s -f Bubblegum\n\nOptions:\n  -f\tWrite recipe to textfile.\n  -h\tDisplay this information.\n";
-
 int main(int argc, char *const argv[])
 {
+    // Template String for -h option
+    const char HELP_TEMPLATE[] = "Usage: %s [OPTION]... [FILENAME]...\n"
+                                "Create a Recipe for a Liquid with the given Ingredients.\n"
+                                "Example: %s -f Bubblegum\n\n"
+                                "Options:\n"
+                                "  -f\tWrite recipe to textfile.\n"
+                                "  -h\tDisplay this information.\n";
+
+    bool f_flag = false; // -f write to file
+    bool c_flag = false; // -c write to console
+    char *desired_name;
+
     // Check for too many arguments
-    if (argc > 4)
-    {
-        fprintf(stderr, "Error: %s\nUsage: %s <arg> <FILENAME>\n", strerror(7), argv[0]);
-        exit(EXIT_FAILURE);
-    }
+    if (argc == 1) 
+        c_flag = true;
+    else
+        FAIL_IF_MSG((argc > 4), 7);
 
     // Formated Message for -h option (that gets printed)
-    char HELP_MESSAGE[(strlen(HELP_TEMPLATE) + strlen(argv[0])) - 1];
+    char HELP_MESSAGE[ (strlen(HELP_TEMPLATE) + strlen(argv[0])) - 1 ];
     sprintf(
         HELP_MESSAGE, 
         HELP_TEMPLATE,
@@ -45,78 +54,76 @@ int main(int argc, char *const argv[])
         argv[0]
     );
 
-    bool writeToFile = false; // Is true when arg -f is present
-    string gw_name; // Recipe title
-
     // Handle command-line arguments
     int opt;
-    while ( (opt = getopt(argc, argv, ":f:h")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:hc")) != -1 )
     {
         switch (opt)
         {
-        case 'h':
-            fputs(HELP_MESSAGE, stdout);
-            exit(EXIT_SUCCESS);
-            break;
+            case 'h':
+                fputs(HELP_MESSAGE, stdout);
+                exit(EXIT_SUCCESS);
+                break;
 
-        case 'f':
-            writeToFile = true;
-            gw_name = optarg;
-            break;
+            case 'c':
+                c_flag = true;
+                break;
 
-        case ':':
-            printf("Error: option -%c needs a filename. Use -h for help.\n", optopt);
-            exit(EXIT_FAILURE);
-            break;
+            case 'f':
+                f_flag = true;
+                desired_name = optarg;
+                break;
 
-        case '?':
-            fprintf(stderr, "Error: %s -%c\n", strerror(22), optopt);
-            exit(EXIT_FAILURE);
-            break;
-        
-        default:
-            fprintf(stderr, "Something went wrong when the program was parsing arguments.\n");
-            exit(EXIT_FAILURE);
-            break;
+            case ':':
+                fprintf(stderr, "Usage: %s [OPTION]... [FILENAME]...\nTry '%s -h' for more information.\n", argv[0], argv[0]);
+                exit(EXIT_FAILURE);
+                break;
+
+            case '?':
+                fprintf(stderr, "Error: %s -%c\n", strerror(22), optopt);
+                exit(EXIT_FAILURE);
+                break;
+            
+            default:
+                fprintf(stderr, "Something went wrong when the program was parsing arguments.\n");
+                exit(EXIT_FAILURE);
+                break;
         }
     }
 
+    // Handle extra arguments
     for(; optind < argc; optind++)
     {     
         printf("extra arguments: %s\n", argv[optind]);
     }
 
-    // Get ingredients from user
-    if (writeToFile == false)
-        gw_name = get_string("Titel des Rezepts: ");
-    
-    float gw_menge = get_float("Gewünschte Menge (ml): ");
-    float vw_nic = get_float("Verwendete Nicotinbasis (mg/ml): ");
-    float gw_nic = get_float("Gewünschte Nicotinstärke (mg/ml): ");
-    float gw_aroma = get_float("Gewünschter Aroma-Anteil (%%): ");
-    float gw_pg = get_float("Gewünschter PG-Anteil (%%): ");
-    float gw_vg = get_float("Gewünschter VG-Anteil (%%): ");
+    // Get ingredients from User
+    float desired_amount = get_float("Gewünschte Menge (ml): ");
+    float nicotin_used = get_float("Verwendete Nicotinbasis (mg/ml): ");
+    float desired_nicotin = get_float("Gewünschte Nicotinstärke (mg/ml): ");
+    float desired_aroma = get_float("Gewünschter Aroma-Anteil (%%): ");
+    float desired_pg = get_float("Gewünschter PG-Anteil (%%): ");
+    float desired_vg = get_float("Gewünschter VG-Anteil (%%): ");
 
     // Create new liquid
     liquid_t newLiquid = {
-        .name = gw_name,
-        .amount = gw_menge,
-        .nicotin = vw_nic == gw_nic ? 0.00 : gw_menge / (vw_nic / gw_nic),
-        .aroma = gw_menge * (gw_aroma / 100),
-        .pg = gw_menge * (gw_pg / 100) - newLiquid.nicotin - newLiquid.aroma,
-        .vg = gw_menge * (gw_vg / 100)
+        .title = (f_flag == true) ? desired_name : "",
+        .amount = desired_amount,
+        .nicotin = nicotin_used == desired_nicotin ? 0.00 : desired_amount / (nicotin_used / desired_nicotin),
+        .aroma = desired_amount * (desired_aroma / 100),
+        .pg = desired_amount * (desired_pg / 100) - newLiquid.nicotin - newLiquid.aroma,
+        .vg = desired_amount * (desired_vg / 100)
     };
 
-    if (writeToFile)
-    {
-        if (writeFile(&newLiquid) != 0)
-        {
-            perror("Could not write to file");
-            exit(EXIT_FAILURE);
-        }
-    }
-    else
+    if (f_flag)
+        FAIL_IF(writeFile(&newLiquid) != 0);
+    else if (c_flag)
         writeToConsole(&newLiquid);
+
+    // Print Memory Usage
+    /* struct rusage myusage;
+    getrusage(RUSAGE_SELF, &myusage);
+    printf("%ld\n", myusage.ru_maxrss); */
 
     exit(EXIT_SUCCESS);
 }

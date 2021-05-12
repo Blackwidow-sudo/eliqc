@@ -23,22 +23,28 @@
 
 #include "functions.h"
 
+/* Print a given liquid to a file
+    The function takes a liquid of type liquid_t and prints its contents to a file.
+    The filename is built with liquid.title and ".txt".  */
 int writeFile(liquid_t *liquid)
 {
     // Title of the Textfile
-    char fileTitle[strlen(liquid->name) + 4];
-    sprintf(fileTitle, "%s.txt", liquid->name);
+    char fileTitle[strlen(liquid->title) + 4];
+    sprintf(fileTitle, "%s.txt", liquid->title);
 
-    // Textfile for recepie
+    // Create textfile with given fileTitle
     FILE *recepie = fopen(fileTitle, "w");
     if (recepie == NULL)
-        return errno;
+    {
+        perror("Could not create file");
+        return 1;
+    }
 
     // Print recepie to textfile
     fprintf(
         recepie, 
         "%s:\n\tMenge: %.2fml\n\tNikotinbasis: %.2fml\n\tAroma: %.2fml\n\tPG: %.2fml\n\tVG: %.2fml\n", 
-        liquid->name,
+        liquid->title,
         liquid->amount,
         liquid->nicotin,
         liquid->aroma,
@@ -51,24 +57,31 @@ int writeFile(liquid_t *liquid)
     return 0;
 }
 
+/* Print a given liquid to stdout */
 void writeToConsole(liquid_t *liquid)
 {
-    int breakLen = strlen(liquid->name) + 1;
-    for (int i = 0; i < breakLen; i++)
-    {
-        if (i == breakLen - 1)
-            printf("==\n");
-        else
-            printf("=");
-    }
+    // Create line of '='-Symbols to visually seperate user-input and output
+    printf("========== Rezept ==========\n");
 
+    // Print recipe to stdout
     printf(
-        "%s:\n\tMenge: %.2fml\n\tNikotinbasis: %.2fml\n\tAroma: %.2fml\n\tPG: %.2fml\n\tVG: %.2fml\n",
-        liquid->name,
+        "\tMenge: %.2fml\n\tNikotinbasis: %.2fml\n\tAroma: %.2fml\n\tPG: %.2fml\n\tVG: %.2fml\n",
         liquid->amount,
         liquid->nicotin,
         liquid->aroma,
         liquid->pg,
         liquid->vg
     );
+}
+
+
+void manual_error(int errNo, const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    printf("Error %d: %s\n", errNo, strerror(errNo));
+    vfprintf(stderr, format, args);
+
+    va_end(args);
 }

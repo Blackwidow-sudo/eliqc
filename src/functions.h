@@ -24,14 +24,20 @@
 // Liquid Ingredients
 typedef struct liquid
 {
-    string name;
+    char *title;
     float amount, nicotin, aroma, pg, vg;
 } liquid_t;
+
+// Macros for error handling
+#define FAIL_IF(EXP) ( {if (EXP) {exit(EXIT_FAILURE);}} )
+#define FAIL_IF_MSG(EXP, ERRNO) ({ if (EXP) { fprintf(stderr, "Error: %s\n", strerror(ERRNO)); exit(EXIT_FAILURE); } })
 
 // Writes a liquid recepie to a textfile
 int writeFile(liquid_t *liquid);
 
 // Prints a liquid recepie to command-line
 void writeToConsole(liquid_t *liquid);
+
+void manual_error(int errNo, const char *format, ...);
 
 #endif // _FUNCTIONS_H

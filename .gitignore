@@ -1,7 +1,9 @@
 .vscode
 bin
 obj
+test
 
 *.o
 *.gch
 *.txt
+*.py
